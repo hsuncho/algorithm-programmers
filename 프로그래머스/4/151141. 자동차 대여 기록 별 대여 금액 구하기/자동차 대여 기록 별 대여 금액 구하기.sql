@@ -1,37 +1,36 @@
 -- 코드를 입력하세요
-SELECT HISTORY_ID,
+WITH TRUCK_DISCOUNT AS (
+    SELECT DURATION_TYPE, DISCOUNT_RATE
+    FROM CAR_RENTAL_COMPANY_DISCOUNT_PLAN
+    WHERE CAR_TYPE = '트럭'
+),
+DURATION AS (
+    SELECT
+        h.HISTORY_ID,
+        c.DAILY_FEE,
+        DATEDIFF(h.END_DATE, h.START_DATE) + 1 AS DURATION
+    FROM CAR_RENTAL_COMPANY_RENTAL_HISTORY h
+    JOIN CAR_RENTAL_COMPANY_CAR c
+        ON h.CAR_ID = c.CAR_ID
+    WHERE c.CAR_TYPE = '트럭'
+)
+
+SELECT 
+    d.HISTORY_ID,
     CASE
-        WHEN DATEDIFF(h.END_DATE, h.START_DATE) + 1 >= 90
-            THEN c.DAILY_FEE 
-                * (100 - (
-                    SELECT DISCOUNT_RATE
-                    FROM CAR_RENTAL_COMPANY_DISCOUNT_PLAN
-                    WHERE DURATION_TYPE = '90일 이상'
-                        AND CAR_TYPE = '트럭'
-                )) / 100
-                * (DATEDIFF(h.END_DATE, h.START_DATE) + 1)
-        WHEN DATEDIFF(h.END_DATE, h.START_DATE) + 1 >= 30
-            THEN c.DAILY_FEE 
-                * (100 - (
-                    SELECT DISCOUNT_RATE
-                    FROM CAR_RENTAL_COMPANY_DISCOUNT_PLAN
-                    WHERE DURATION_TYPE = '30일 이상'
-                        AND CAR_TYPE = '트럭'
-                )) / 100
-                * (DATEDIFF(h.END_DATE, h.START_DATE) + 1)
-        WHEN DATEDIFF(h.END_DATE, h.START_DATE) + 1 >= 7
-            THEN c.DAILY_FEE 
-                * (100 - (
-                    SELECT DISCOUNT_RATE
-                    FROM CAR_RENTAL_COMPANY_DISCOUNT_PLAN
-                    WHERE DURATION_TYPE = '7일 이상'
-                        AND CAR_TYPE = '트럭'
-                )) / 100
-                * (DATEDIFF(h.END_DATE, h.START_DATE) + 1)
-        ELSE c.DAILY_FEE * (DATEDIFF(h.END_DATE, h.START_DATE) + 1)
+        WHEN d.DURATION >= 90
+            THEN d.DAILY_FEE * d.DURATION * (100- t90.DISCOUNT_RATE) / 100
+        WHEN d.DURATION >= 30
+            THEN d.DAILY_FEE * d.DURATION * (100- t30.DISCOUNT_RATE) / 100
+        WHEN d.DURATION >= 7
+            THEN d.DAILY_FEE * d.DURATION * (100- t7.DISCOUNT_RATE) / 100
+        ELSE d.DAILY_FEE * d.DURATION
     END AS FEE
-FROM CAR_RENTAL_COMPANY_RENTAL_HISTORY h
-JOIN CAR_RENTAL_COMPANY_CAR c
-    ON h.CAR_ID = c.CAR_ID
-WHERE c.CAR_TYPE = '트럭'
-ORDER BY FEE DESC, HISTORY_ID DESC;
+FROM DURATION d
+LEFT JOIN TRUCK_DISCOUNT t90
+    ON t90.DURATION_TYPE = '90일 이상'
+LEFT JOIN TRUCK_DISCOUNT t30
+    ON t30.DURATION_TYPE = '30일 이상'
+LEFT JOIN TRUCK_DISCOUNT t7
+    ON t7.DURATION_TYPE = '7일 이상'
+ORDER BY FEE DESC, d.HISTORY_ID DESC;
