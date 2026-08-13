@@ -2,7 +2,8 @@ def solution(s):
     answer = len(s)
     cnt = 1
     
-    while cnt < len(s):
+    # 문자열 길이의 절반보다 큰 단위로 자르면 같은 문자열이 2번 이상 반복될 수 없음
+    while cnt <= len(s) // 2:
         result = []
         pattern_cnt = 1
         pattern = s[0:cnt]
