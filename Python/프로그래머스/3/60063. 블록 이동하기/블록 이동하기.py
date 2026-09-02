@@ -10,9 +10,6 @@ def solution(board):
     dx = [-1, 1, 0, 0]
     dy = [0, 0, -1, 1]
     
-    rx1 = [-1, 1, 0, 0]
-    rx2 = [0, 0, -1, 1]
-    
     q = deque([(start, time)])
     answer = 0
     
@@ -21,7 +18,7 @@ def solution(board):
         (x1, y1), (x2, y2) = state
         
         if (x1 == n-1 and y1 == n-1) or (x2 == n-1 and y2 == n-1):
-            break
+            return time
         
         # 상하좌우 이동
         for i in range(4):
@@ -63,4 +60,3 @@ def solution(board):
                     if next_state2 not in visited:
                         visited.add(next_state2)
                         q.append((next_state2, time + 1))
-    return time
